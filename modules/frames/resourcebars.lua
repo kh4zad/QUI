@@ -3158,11 +3158,8 @@ function QUICore:OnShapeshiftChanged()
         _G.QUI_UpdateAnchoredFrames()
     end
 end
--- Hook into that shit
-local oldOnEnable = QUICore.OnEnable
-function QUICore:OnEnable()
-    if oldOnEnable then
-        oldOnEnable(self)
-    end
-    InitializeResourceBars(self)
+if QUICore and QUICore.RegisterPostEnable then
+    QUICore:RegisterPostEnable(function(core)
+        InitializeResourceBars(core)
+    end)
 end
