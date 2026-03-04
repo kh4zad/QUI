@@ -191,6 +191,25 @@ local function ShouldKeepLeaveVehicleVisible()
     return IsLeaveVehicleButtonVisible()
 end
 
+local function ApplyLeaveVehicleButtonVisibilityOverride(forceVisible)
+    local mainLeaveButton = _G.MainMenuBarVehicleLeaveButton
+    local overrideBar = _G.OverrideActionBar
+    local overrideLeaveButton = overrideBar and overrideBar.LeaveButton
+    local leaveButtons = { mainLeaveButton, overrideLeaveButton }
+
+    for _, button in ipairs(leaveButtons) do
+        if button then
+            local keepOpaque = forceVisible and button.IsShown and button:IsShown()
+            if button.SetIgnoreParentAlpha then
+                button:SetIgnoreParentAlpha(keepOpaque)
+            end
+            if keepOpaque then
+                button:SetAlpha(1)
+            end
+        end
+    end
+end
+
 local function IsSpellBookVisible()
     local spellBookFrame = _G.SpellBookFrame
     if spellBookFrame and spellBookFrame.IsShown and spellBookFrame:IsShown() then
@@ -1983,10 +2002,6 @@ local function SetBarAlpha(barKey, alpha)
         alpha = 1
     end
 
-    if barKey == "bar1" and alpha < 1 and ShouldKeepLeaveVehicleVisible() then
-        alpha = 1
-    end
-
     local buttons = GetBarButtons(barKey)
     local settings = GetGlobalSettings()
     local hideEmptyEnabled = settings and settings.hideEmptySlots
@@ -2004,6 +2019,10 @@ local function SetBarAlpha(barKey, alpha)
     local barFrame = GetBarFrame(barKey)
     if barFrame then
         barFrame:SetAlpha(alpha)
+    end
+
+    if barKey == "bar1" then
+        ApplyLeaveVehicleButtonVisibilityOverride(alpha < 1 and ShouldKeepLeaveVehicleVisible())
     end
 
     GetBarFadeState(barKey).currentAlpha = alpha
